@@ -24,7 +24,7 @@
               :key="index"
             >
               <radio
-                :checked="formData.type === item.value"
+                :checked="formData.way === item.value"
                 color="var(--ui-BG-Main)"
                 style="transform: scale(0.8)"
                 :value="item.value"
@@ -159,6 +159,10 @@
 
   // 提交表单
   async function submit() {
+    if (!formData.way) {
+      sheep.$helper.toast('请选择售后类型');
+      return;
+    }
     let data = {
       orderItemId: state.itemId,
       refundPrice: state.item.payPrice,
