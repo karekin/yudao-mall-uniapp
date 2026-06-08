@@ -253,8 +253,8 @@
 
   .message-container {
     width: 100%;
-    /* 确保容器至少有一屏高度 */
-    min-height: 100vh;
+    /* 倒置滚动区内，容器高度只需要撑满聊天区域 */
+    min-height: v-bind(chatScrollHeight);
     display: flex;
     flex-direction: column;
     justify-content: flex-end;
