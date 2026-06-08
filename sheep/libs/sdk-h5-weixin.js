@@ -9,6 +9,7 @@ import $helper from '@/sheep/helper';
 import AuthUtil from '@/sheep/api/member/auth';
 
 let configSuccess = false;
+let configAppId = ''; // JSSDK 初始化所使用的公众号 appId，确认收款时需要
 
 export default {
   // 判断是否在微信中
@@ -47,9 +48,11 @@ export default {
           'updateAppMessageShareData',
           'updateTimelineShareData',
           'scanQRCode',
+          // 'requestMerchantTransfer', // TODO @使用者：如果需要微信商家转账功能，请打开该注释；
         ], // TODO 芋艿：后续可以设置更多权限；
         openTagList: data.openTagList,
       });
+      configAppId = data.appId;
     } else {
       console.log('请求 JSSDK 配置失败，错误码：', code);
     }
@@ -191,6 +194,52 @@ export default {
         },
         cancel: function (err) {
           callback.cancel && callback.cancel(err);
+        },
+      });
+    });
+  },
+
+  // 商家转账，用户确认收款（H5 / 公众号）
+  // 可见 https://pay.weixin.qq.com/doc/v3/merchant/4012716430 文档
+  requestMerchantTransfer(data, callback) {
+    const invoke = () => {
+      // WeixinJSBridge 内置对象，仅在微信客户端中有效
+      if (typeof WeixinJSBridge === 'undefined') {
+        callback.fail && callback.fail({ errMsg: '请在微信客户端中打开页面后再确认收款' });
+        return;
+      }
+      WeixinJSBridge.invoke(
+        'requestMerchantTransfer',
+        {
+          mchId: data.mchId,
+          appId: data.appId || configAppId,
+          package: data.package,
+        },
+        function (res) {
+          if (res.err_msg === 'requestMerchantTransfer:ok') {
+            callback.success && callback.success(res);
+          } else if (res.err_msg === 'requestMerchantTransfer:cancel') {
+            callback.cancel && callback.cancel(res);
+          } else {
+            callback.fail && callback.fail(res);
+          }
+        },
+      );
+    };
+    this.isReady(() => {
+      // 校验微信客户端是否支持 requestMerchantTransfer
+      jweixin.checkJsApi({
+        jsApiList: ['requestMerchantTransfer'],
+        success: function (res) {
+          if (res.checkResult && res.checkResult['requestMerchantTransfer']) {
+            invoke();
+          } else {
+            callback.fail && callback.fail({ errMsg: '你的微信版本过低，请更新至最新版本' });
+          }
+        },
+        fail: function () {
+          // checkJsApi 失败时，兜底直接尝试调用
+          invoke();
         },
       });
     });

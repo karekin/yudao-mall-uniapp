@@ -229,7 +229,7 @@
     }
     let openid;
     if (state.accountInfo.type === '5') {
-      openid = await sheep.$platform.useProvider('wechat').getOpenid();
+      openid = await sheep.$platform.useProvider('wechat').getOpenid(true);
       // 如果获取不到 openid，微信无法发起支付，此时需要引导
       if (!openid) {
         goBindWeixin();

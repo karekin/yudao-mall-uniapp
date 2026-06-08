@@ -2,6 +2,7 @@ import $wxsdk from '@/sheep/libs/sdk-h5-weixin';
 import { getRootUrl } from '@/sheep/helper';
 import AuthUtil from '@/sheep/api/member/auth';
 import SocialApi from '@/sheep/api/member/social';
+import sheep from '@/sheep';
 
 const socialType = 31; // 社交类型 - 微信公众号
 
@@ -94,6 +95,30 @@ async function getInfo() {
   return data;
 }
 
+// 商家转账用户确认模式下，拉起页面请求用户确认收款 Transfer
+// 入参与小程序保持一致：(mchId, packageInfo, successCallback, failCallback)
+function requestMerchantTransfer(mchId, packageInfo, successCallback, failCallback) {
+  $wxsdk.requestMerchantTransfer(
+    {
+      mchId,
+      package: packageInfo,
+    },
+    {
+      success: (res) => {
+        successCallback && successCallback({ result: 'success', ...res });
+      },
+      cancel: (res) => {
+        sheep.$helper.toast('确认收款已取消');
+        failCallback && failCallback({ result: 'cancel', errMsg: '确认收款已取消', ...res });
+      },
+      fail: (res) => {
+        sheep.$helper.toast(res.errMsg || '确认收款失败');
+        failCallback && failCallback({ result: 'fail', ...res });
+      },
+    },
+  );
+}
+
 export default {
   load,
   login,
@@ -101,5 +126,6 @@ export default {
   unbind,
   getInfo,
   getOpenid,
+  requestMerchantTransfer,
   jsWxSdk: $wxsdk,
 };
