@@ -42,7 +42,8 @@
    *  装修组件 - 自定义标题栏
    *
    *
-   * @property {Number | String}  alwaysShow = [0,1]			    - 是否常驻
+   * @property {String}  showType = [always,scroll]			    - 显示方式
+   * @property {Number | String}  alwaysShow = [0,1]			    - 是否常驻，兼容旧数据
    * @property {Number | String}  styleType = [inner]			   	- 是否沉浸式
    * @property {String | Number} type              - 标题背景模式
    * @property {String} color                  - 页面背景色
@@ -65,9 +66,15 @@
     },
   });
   const hasHistory = sheep.$router.hasHistory();
+  const isAlwaysShow = computed(() => {
+    if (['always', 'scroll'].includes(props.data.showType)) {
+      return props.data.showType === 'always';
+    }
+    return ![false, 0, '0', 'false', undefined, null].includes(props.data.alwaysShow);
+  });
   const sticky = computed(() => {
     if (props.data.styleType === 'inner') {
-      if (props.data.alwaysShow) {
+      if (isAlwaysShow.value) {
         return false;
       }
     }
@@ -103,9 +110,7 @@
     };
     return obj;
   };
-  const isAlways = computed(() =>
-    props.data.styleType === 'inner' ? Boolean(props.data.alwaysShow) : true,
-  );
+  const isAlways = computed(() => (props.data.styleType === 'inner' ? isAlwaysShow.value : true));
   const isOpacity = computed(() =>
     props.data.styleType === 'normal'
       ? false
@@ -163,7 +168,8 @@
 
       .icon-box {
         background: #ffffff;
-        box-shadow: 0px 0px 4rpx rgba(51, 51, 51, 0.08), 0px 4rpx 6rpx 2rpx rgba(102, 102, 102, 0.12);
+        box-shadow: 0px 0px 4rpx rgba(51, 51, 51, 0.08),
+          0px 4rpx 6rpx 2rpx rgba(102, 102, 102, 0.12);
         border-radius: 30rpx;
         width: 134rpx;
         height: 56rpx;

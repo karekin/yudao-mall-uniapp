@@ -106,6 +106,7 @@
         color: '',
         src: '',
         list: [],
+        showType: 'scroll',
         alwaysShow: 0,
       }),
     },
